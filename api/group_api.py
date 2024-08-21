@@ -1,3 +1,7 @@
+import json, requests
+import os
+import random
+import string
 from flask import Blueprint, request, jsonify, make_response, current_app
 from flask_cors import CORS
  
@@ -6,6 +10,7 @@ group_api = Blueprint('group_api', __name__)
 
 @group_api.route('/', methods=['GET'])
 def get_group():
+    current_app.logger.debug(f" Request: {request}")
     from app import db
     query = "SELECT * FROM `groups`"
     cursor = db.connection.cursor()
@@ -36,3 +41,134 @@ def get_categories():
         cursor.close()
     current_app.logger.debug(f" Response: {jsonify(result)}")
     return jsonify(result)
+
+@group_api.route('/update-video-id', methods=['GET'])
+def update_video_id():
+
+    from app import db
+    
+    #GET ALL GROUPS
+    query = "SELECT * FROM `groups`"
+    cursor = db.connection.cursor()
+    cursor.execute(query)
+    groups = cursor.fetchall()
+    cursor.close()
+
+    count = 0
+    for group in groups:
+        N = 22
+        video_id = 'VID' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=N))
+        query = f"UPDATE `groups` SET video_id = '{video_id}' WHERE idx = {group['idx']}"
+        cursor = db.connection.cursor()
+        cursor.execute(query)
+        db.connection.commit()
+        cursor.close()
+        count += 1
+
+    return jsonify({"message": f"Updated {count} records"})
+
+@group_api.route('/ground-truth', methods=['POST', 'OPTIONS'])
+def add_group():
+    from app import db
+    data = json.loads(request.data)
+    print(f" Request: {data}")
+    current_app.logger.debug(f" Request: {data}")
+
+    #generate ground truth id
+    N = 22
+    ground_truth_id = 'GTR' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=N))
+
+    #insert ground truth id, video id, filename, path, type, is_active, created_at and created_by
+    query = f"INSERT INTO `ground_truth` (ground_truth_id, video_id, filename, path, type, file_type, is_active, created_at, created_by) VALUES ('{ground_truth_id}', '{data['video_id']}', '{data['filename']}', '{data['path']}', '{data['type']}', '{data['file_type']}', 1, NOW(), '{data['created_by']}')"
+
+    cursor = db.connection.cursor()
+    cursor.execute(query)
+    db.connection.commit()
+    cursor.close()
+    current_app.logger.debug(f" Response: {jsonify({'message': 'success'})}")
+    print(f" Done")
+    data['ground_truth_id'] = ground_truth_id
+    data['is_active'] = 1
+    return jsonify({'message': 'success', 'data': data})
+
+
+@group_api.route('/ground-truth/update', methods=['GET'])
+def ground_truth_path_update():
+    ### I rearranged the path of the file system so that dataset type (Typing, Writing, Talking was within the date folder) This endpoint made that change in the database. 
+
+
+    from app import db
+    query = "SELECT * FROM `ground_truth`"
+    cursor = db.connection.cursor()
+    cursor.execute(query)
+    ground_truths = cursor.fetchall()
+    cursor.close()
+
+    count = 0
+    for ground_truth in ground_truths:
+        old_path = ground_truth['path']
+        paths = old_path.split('/')
+        date = paths.pop()
+        dataset_type = paths.pop()
+
+        new_path = ""
+
+        for i, path in enumerate(paths):
+            if(i == 0):
+                new_path += path
+            else:
+                new_path += f"/{path}"
+
+        new_path += f"/{date}/{dataset_type}"
+        query = f"UPDATE `ground_truth` SET path = '{new_path}' WHERE ground_truth_id = '{ground_truth['ground_truth_id']}'"
+
+        cursor = db.connection.cursor()
+        cursor.execute(query)
+        db.connection.commit()
+        cursor.close()
+
+
+        if(count % 10 == 0):
+            print(f"Updated {count} records")
+            print(f"Old path: {old_path} New path: {new_path}")
+
+        count += 1
+
+        
+
+        
+    return jsonify({"message": "success"})
+
+
+@group_api.route('/ground-truth/metadata', methods=['GET'])
+def update_metadata():
+    from app import db
+    query = "SELECT * FROM `groups`"
+    cursor = db.connection.cursor()
+    cursor.execute(query)
+    videos = cursor.fetchall()
+    cursor.close()
+
+    root_path = os.environ.get('DATASTORE_ROOT')
+
+    for video in videos:
+        link = video['link']
+        r = requests.get(link, stream=True)
+        
+
+        
+        school_dir = os.path.join(root_path, f"cohort-{video['cohort']}", f"level-{video['level']}", f"school-{video['school'].lower()}")
+
+        group_dir = os.path.join(school_dir, f"group-{video['group_name']}")
+
+        date = video['date'].replace('-', '')
+
+        dataset_type = video['dataset_type']
+
+        if not os.path.exists(group_dir):
+            os.makedirs(group_dir)
+
+       
+        
+
+

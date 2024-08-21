@@ -2,7 +2,9 @@ from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from flask_mysqldb import MySQL
 import logging, json
+from api.datastore.datastore_api import datastore_api
 from api.group_api import group_api
+from api.processing.processing_api import processing_api
 
 
 logging.basicConfig(filename='record.log',
@@ -17,6 +19,8 @@ def create_app():
     app.config['MYSQL_DB'] = 'aolme_prod'
     app.config['MYSQL_CURSORCLASS'] = 'DictCursor' 
     app.register_blueprint(group_api, url_prefix='/api/group')
+    app.register_blueprint(datastore_api, url_prefix='/api/datastore')
+    app.register_blueprint(processing_api, url_prefix='/api/processing')
 
     return app
 
