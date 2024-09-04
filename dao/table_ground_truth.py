@@ -23,12 +23,18 @@ class TableGroundTruth(AbstractDao):
         pass
 
     def get_by_video_and_type(self, video_id, type):
-        query = "SELECT filename, path, ground_truth_id, type  FROM ground_truth WHERE video_id = %s AND type = %s"
-        cursor = self.db.connection.cursor()
-        cursor.execute(query, (video_id, type))
-        ground_truth = cursor.fetchall()
-        cursor.close()
-        return ground_truth
+        try:
+            query = "SELECT filename, path, ground_truth_id, type  FROM ground_truth WHERE video_id = %s AND type = %s"
+            cursor = self.db.connection.cursor()
+            cursor.execute(query, (video_id, type))
+            ground_truth = cursor.fetchone()
+            cursor.close()
+            return ground_truth
+        except Exception as e:
+            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            return f"{self.__class__.__name__}::ERROR - {e}" 
+    
+    
 
 
     def add(self, payload):
@@ -47,7 +53,7 @@ class TableGroundTruth(AbstractDao):
         
         except Exception as e:
             current_app.logger.error(f"{self.__class__.__name__} - {e}")
-            return f"ERROR"
+            return f"{self.__class__.__name__}::ERROR"
         
     
 

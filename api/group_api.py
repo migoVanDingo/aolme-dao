@@ -1,4 +1,6 @@
 import json, requests
+from datetime import datetime
+import pandas as pd
 import os
 import random
 import string
@@ -17,8 +19,71 @@ def get_group():
     cursor.execute(query)
     groups = cursor.fetchall()
     cursor.close()
-    current_app.logger.debug(f" Response: {jsonify(groups)}")
+    
+    for group in groups:
+        group['date'] = group['date'].strftime('%Y-%m-%d')  
+
+    #current_app.logger.debug(f" Response: {groups}")
     return jsonify(groups)
+
+@group_api.route('/entities', methods=['GET'])
+def get_entities():
+    from app import db
+    query = "SELECT cohort, level, school, date, group_name, facilitator, video_id FROM `groups` WHERE quality = 2"
+    cursor = db.connection.cursor()
+    cursor.execute(query)
+    groups = cursor.fetchall()
+    cursor.close()
+
+    df = pd.DataFrame(groups)
+
+    cohorts = df['cohort'].unique()
+    levels = df['level'].unique()
+    schools = df['school'].unique()
+    dates = df['date'].unique()
+    group_names = df['group_name'].unique()
+    facilitators = df['facilitator'].unique()
+
+    cohortList = []
+    levelList = []
+    schoolList = []
+    dateList = []
+    groupList = []
+
+
+    entities = []
+    # For each cohort, append the levels that exist within it. For each level, append the schools that exist within it. For each school, append the dates that exist within it. For each date, append the group names that exist within it.
+    for cohort in cohorts:
+        cohortList.append(cohort)
+        cohortLevels = df[df['cohort'] == cohort]['level'].unique()
+        for level in cohortLevels:
+            levelList.append(level)
+            levelSchools = df[(df['cohort'] == cohort) & (df['level'] == level)]['school'].unique()
+            for school in levelSchools:
+                schoolList.append(school)
+                schoolDates = df[(df['cohort'] == cohort) & (df['level'] == level) & (df['school'] == school)]['date'].unique()
+                for date in schoolDates:
+                    dateList.append(date)
+                    dateGroups = df[(df['cohort'] == cohort) & (df['level'] == level) & (df['school'] == school) & (df['date'] == date)]['group_name'].unique()
+                    for group in dateGroups:
+                        groupList.append(group)
+                        facilitators = df[(df['cohort'] == cohort) & (df['level'] == level) & (df['school'] == school) & (df['date'] == date) & (df['group_name'] == group)]['facilitator'].unique()
+                        for facilitator in facilitators:
+                            entities.append({
+                                "cohort": cohort,
+                                "level": level,
+                                "school": school,
+                                "date": "{}".format,
+                                "group_name": group,
+                                "facilitator": facilitator
+                            })
+
+
+    current_app.logger.debug(f" get_entities :: response: {entities}")
+
+
+
+    return jsonify(entities)
 
 @group_api.route('/categories', methods=['GET'])
 def get_categories():
