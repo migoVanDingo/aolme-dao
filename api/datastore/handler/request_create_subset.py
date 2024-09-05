@@ -1,4 +1,5 @@
 import os
+import traceback
 from flask import current_app
 
 from api.datastore.handler.request_download_files_to_directory import RequestDownloadFilesToDirectory
@@ -40,7 +41,7 @@ class RequestCreateSubset:
             return subset
             
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - ERROR: {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}:: ERROR - {e}"
         
     
@@ -145,7 +146,7 @@ class RequestCreateSubset:
                     if not toggle:
                         self.directory_db.insert({
                             "ds_subset_id": subset['ds_subset_id'],
-                            "type": date_dir,
+                            "type": subset_dir,
                             "path": path,
                             "owner": subset['owner']
                         })

@@ -1,5 +1,6 @@
 import random
 import string
+import traceback
 
 from flask import current_app, jsonify
 
@@ -26,7 +27,7 @@ class TableDatastoreDirectory:
             cursor.close()
             return payload
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
         
     def get_item(self, directory_id):
@@ -39,7 +40,19 @@ class TableDatastoreDirectory:
             return result
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
+            return f"{self.__class__.__name__}::ERROR - {e}"
+    
+    def get_item_by_type(self, ds_subset_id, type):
+        try:
+            query = "SELECT * FROM datastore_subset_directory WHERE ds_subset_id = %s AND type = %s AND is_active = 1"
+            cursor = self.db.connection.cursor()
+            cursor.execute(query, (ds_subset_id, type))
+            result = cursor.fetchone()
+            cursor.close()
+            return result
+        except Exception as e:
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
         
     def get_list_by_subset_id(self, subset_id):
@@ -52,7 +65,7 @@ class TableDatastoreDirectory:
             return result
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
         
     def update(self, payload):
@@ -64,7 +77,7 @@ class TableDatastoreDirectory:
             cursor.close()
             return payload
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
         
     def delete(self, directory_id):
@@ -76,7 +89,7 @@ class TableDatastoreDirectory:
             cursor.close()
             return f"Deleted {directory_id}"
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
         
     

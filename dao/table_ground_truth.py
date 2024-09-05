@@ -1,5 +1,6 @@
 import random
 import string
+import traceback
 
 from flask import current_app
 from dao.abstract_dao import AbstractDao
@@ -31,7 +32,7 @@ class TableGroundTruth(AbstractDao):
             cursor.close()
             return ground_truth
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}" 
     
     
@@ -52,7 +53,7 @@ class TableGroundTruth(AbstractDao):
             return payload
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR"
         
     

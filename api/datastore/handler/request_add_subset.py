@@ -1,4 +1,5 @@
 import os
+import traceback
 from flask import current_app, json
 
 from api.datastore.handler.request_create_subset import RequestCreateSubset
@@ -21,7 +22,7 @@ class RequestAddSubset:
 
             # Check if subset exists for this group. If so use that subset
             name = self.concat_name(self.payload['subset_info'])
-            subset = self.db.get_item_by_name(name)
+            subset = self.db.get_item_by_name(name, self.payload['dataset_type'])
 
             if subset is None:
                 request_create_subset = RequestCreateSubset(self.payload, name)
@@ -29,10 +30,13 @@ class RequestAddSubset:
 
 
             current_app.logger.debug(f"{self.__class__.__name__} - Subset: {subset}")
+
+            # Get video directory
+            video_directory = self.subset_directory_db.get_item_by_type(subset['ds_subset_id'], 'video')
             
             payload_download_files_to_directory = {
                 "subset_info": self.payload['subset_info'],
-                "directory": os.path.join(subset['path'], "video"),
+                "directory": video_directory['path'],
             }
 
             current_app.logger.debug(f"{self.__class__.__name__} - Payload: {payload_download_files_to_directory}")
@@ -53,7 +57,7 @@ class RequestAddSubset:
             return "success"
             
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} ::: {traceback.format_exc()} - {e}")
             return f"{self.__class__.__name__}:: ERROR - {e}"
 
 

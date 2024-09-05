@@ -1,5 +1,6 @@
 import random
 import string
+import traceback
 
 from flask import current_app
 
@@ -26,7 +27,7 @@ class TableDatastore:
             cursor.close()
             return payload
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - ERROR: {e}")
+            current_app.logger.error(f"{self.__class__.__name__} ::: {traceback.format_exc()} - {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
         
     def get_item(self, datastore_id):
@@ -39,5 +40,5 @@ class TableDatastore:
             return result
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - ERROR: {e}")
+            current_app.logger.error(f"{self.__class__.__name__} ::: {traceback.format_exc()} - {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"

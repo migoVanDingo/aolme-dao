@@ -1,5 +1,6 @@
 import random
 import string
+import traceback
 
 from flask import current_app, jsonify
 
@@ -27,7 +28,7 @@ class TableDatastoreSubset:
             cursor.close()
             return payload
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__}::insert() - ERROR: {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}:: ERROR - {e}"
 
     def get_item(self, subset_id):
@@ -41,20 +42,20 @@ class TableDatastoreSubset:
             return result
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__}:: get_item() - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
     
-    def get_item_by_name(self, name):
+    def get_item_by_name(self, name, type):
         try:
-            query = "SELECT datastore_id, ds_subset_id, name, type, is_public, path, created_by FROM datastore_subset WHERE name = %s AND is_active = 1"
+            query = "SELECT datastore_id, ds_subset_id, name, type, is_public, path, created_by FROM datastore_subset WHERE name = %s AND type = %s AND is_active = 1"
             cursor = self.db.connection.cursor()
-            cursor.execute(query, (name,))
+            cursor.execute(query, (name, type))
             result = cursor.fetchone()
             cursor.close()
             return result
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__}:: get_item_by_name() - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
 
     def get_list(self, datastore_id):
@@ -66,14 +67,14 @@ class TableDatastoreSubset:
             cursor.close()
             return result
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
 
     def update(self):
-        current_app.logger.debug(f"{self.__class__.__name__}:: get_list() - update Not implemented")
+        current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {'Not implemented'}")
         return "Not implemented"
 
     def delete(self):
-        current_app.logger.debug(f"{self.__class__.__name__} - delete Not implemented")
+        current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {'Not implemented'}")
         return "Not implemented"
 

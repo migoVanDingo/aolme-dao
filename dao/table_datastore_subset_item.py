@@ -1,5 +1,6 @@
 import random
 import string
+import traceback
 
 from flask import current_app
 
@@ -28,7 +29,7 @@ class TableDatastoreSubsetItem:
             cursor.close()
             return payload
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
 
     def get_item(self, subset_item_id):
@@ -41,7 +42,7 @@ class TableDatastoreSubsetItem:
             return result
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
     
     def get_item_by_name(self, name):
@@ -55,7 +56,7 @@ class TableDatastoreSubsetItem:
             return result
         
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
 
     def get_list(self, subset_id):
@@ -67,7 +68,7 @@ class TableDatastoreSubsetItem:
             cursor.close()
             return result
         except Exception as e:
-            current_app.logger.error(f"{self.__class__.__name__} - {e}")
+            current_app.logger.error(f"{self.__class__.__name__} :::: {traceback.format_exc()} -- {e}")
             return f"{self.__class__.__name__}::ERROR - {e}"
 
     def update(self):
